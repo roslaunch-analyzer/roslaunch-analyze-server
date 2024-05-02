@@ -8,7 +8,26 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    # return sample tree
+    return {
+        "name": "root",
+        "children": [
+            {
+                "name": "child1",
+                "children": [
+                    {"name": "child1-1", "children": []},
+                    {"name": "child1-2", "children": []},
+                ],
+            },
+            {
+                "name": "child2",
+                "children": [
+                    {"name": "child2-1", "children": []},
+                    {"name": "child2-2", "children": []},
+                ],
+            },
+        ],
+    }
 
 
 @app.get("/analyze_required_arguments/")

@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "This package provides a tool to analyze ROS launchfiles."
 authors = ["Y.Hisaki <yhisaki31@gmail.com>"]
 readme = "README.md"
+repository = "https://github.com/roslaunch-analyzer/roslaunch-analyze-server.git"
 
 [tool.poetry.dependencies]
 python = "^3.10"
