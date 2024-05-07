@@ -1,7 +1,11 @@
 import uvicorn
-
+import typer
 from roslaunch_analyze_server.app import app
 
 
-def run():
-    uvicorn.run(app, host="localhost", port=8000)
+cli = typer.Typer()
+
+
+@cli.command()
+def run(port: int = 8000):
+    uvicorn.run(app, host="localhost", port=port)
