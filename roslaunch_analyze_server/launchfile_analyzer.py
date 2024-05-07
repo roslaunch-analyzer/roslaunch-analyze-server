@@ -1,14 +1,15 @@
 #!/bin/python3
 
-import xml.etree.ElementTree as ET
-from copy import deepcopy
 import json
 import os
-from string_utils import analyze_string, find_linked_path
-from roslaunch_analyze_server.launch_tree import LaunchTree
-from roslaunch_analyze_server.launch_node_utils import parse_node_tag
-from roslaunch_analyze_server.models import LaunchFile
+import xml.etree.ElementTree as ET
+from copy import deepcopy
 from typing import Any, Dict, List, Optional
+
+from roslaunch_analyze_server.launch_node_utils import parse_node_tag
+from roslaunch_analyze_server.launch_tree import LaunchTree
+from roslaunch_analyze_server.models import LaunchFile
+from roslaunch_analyze_server.string_utils import analyze_string, find_linked_path
 
 
 def check_if_run(tag: ET.Element, base_name: dict, context: dict, local_context: dict):
@@ -134,7 +135,7 @@ def parse_group_tag(
             )
             # print(f"Setting ROS namespace to {group_base_namespace} inside group")
 
-    ## find all other children
+    # find all other children
     for child in group_tag:
         process_tag(
             child,
@@ -214,7 +215,7 @@ def main(
     context = dict()
     context["__tree__"] = context_tree
 
-    ## arguments
+    # arguments
     context["vehicle_model"] = vehicle_model
     context["sensor_model"] = sensor_model
     for key in kwargs:
@@ -227,4 +228,5 @@ def main(
 
 if __name__ == "__main__":
     from fire import Fire
+
     context = Fire(main)

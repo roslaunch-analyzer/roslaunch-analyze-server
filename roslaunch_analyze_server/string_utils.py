@@ -1,16 +1,17 @@
-from ament_index_python.packages import get_package_share_directory
-import re
 import os
+import re
+
+from ament_index_python.packages import get_package_share_directory
 
 patterns = {
     "var": r"\$\((var) ([^\)]+)\)",
     "env": r"\$\((env) ([^\s]+)(?:\s+([^\)]+))?\)",
-    "eval": "\$\((eval) ([^\)]+)\)",
+    "eval": r"\$\((eval) ([^\)]+)\)",
     "find-pkg-share": r"\$\((find-pkg-share) ([^\)]+)\)",
 }
 
 
-def clean_eval_variables(string:str)->str:
+def clean_eval_variables(string: str) -> str:
     """Remove quotes and spaces from a string, to obtain the 'value' of a variable."""
     string = string.replace("\\", "")
     if string.startswith('"') and string.endswith('"'):
@@ -19,16 +20,15 @@ def clean_eval_variables(string:str)->str:
         return string[1:-1]
     else:
         return string
-    
 
-def analyze_eval_string(input_string:str)->str:
-    """ Evaluate the expression in the $(eval ...) tag.
-    """
-    list_of_strings = input_string.split(' ')
-    if list_of_strings[0] == '$(eval':
-        expression = ' '.join(list_of_strings[1:])[:-1] # remove the last ')'
+
+def analyze_eval_string(input_string: str) -> str:
+    """Evaluate the expression in the $(eval ...) tag."""
+    list_of_strings = input_string.split(" ")
+    if list_of_strings[0] == "$(eval":
+        expression = " ".join(list_of_strings[1:])[:-1]  # remove the last ')'
         expression = clean_eval_variables(expression)
-        result = str(eval(expression)) # remove the outer quotes
+        result = str(eval(expression))  # remove the outer quotes
     else:
         result = input_string
     return result
@@ -36,7 +36,7 @@ def analyze_eval_string(input_string:str)->str:
 
 def analyze_string(
     input_string: str, context: dict, local_context: dict, base_namespace: str
-)->str:
+) -> str:
     """Resolve substitutions recursively in a given string.
 
     Args:
@@ -54,10 +54,10 @@ def analyze_string(
             variable_name = analyze_string(
                 match.group(2), context, local_context, base_namespace
             )  # Recursively resolve inner substitutions
-            ## Check if the variable is in the local context
+            # Check if the variable is in the local context
             var_value = local_context.get(variable_name, None)
             if var_value is None:
-                ## Check if the variable is in the global context
+                # Check if the variable is in the global context
                 var_value = context.get(variable_name)
             return var_value
         elif match.group(1) == "env":
@@ -91,7 +91,7 @@ def analyze_string(
         """
         if key == "eval":
             input_string = analyze_eval_string(input_string)
-        else:    
+        else:
             while True:
                 old_string = input_string
                 input_string = re.sub(pattern, replace_match, input_string)
@@ -104,9 +104,8 @@ def analyze_string(
     return input_string
 
 
-def find_linked_path(path:str)->str:
-    """ Find the linked path of a given path. If the path is not a link, return the path itself.
-    """
+def find_linked_path(path: str) -> str:
+    """Find the linked path of a given path. If the path is not a link, return the path itself."""
     if os.path.islink(path):
         linked_path = os.readlink(path)
         return linked_path

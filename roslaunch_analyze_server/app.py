@@ -30,6 +30,11 @@ async def root():
     }
 
 
+@app.get("/hello_world/")
+async def hello_world():
+    return "Hello, World!"
+
+
 @app.get("/analyze_required_arguments/")
 async def analyze_required_arguments(launch_file: LaunchFile):
     return get_required_arguments(launch_file.path)

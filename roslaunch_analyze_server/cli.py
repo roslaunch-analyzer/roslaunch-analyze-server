@@ -1,7 +1,7 @@
-import uvicorn
 import typer
-from roslaunch_analyze_server.app import app
+import uvicorn
 
+from roslaunch_analyze_server.app import app
 
 cli = typer.Typer()
 
