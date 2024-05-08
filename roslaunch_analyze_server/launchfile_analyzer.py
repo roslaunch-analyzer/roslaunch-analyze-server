@@ -1,13 +1,10 @@
 #!/bin/python3
-
-import json
 import os
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 from roslaunch_analyze_server.launch_node_utils import parse_node_tag
-from roslaunch_analyze_server.launch_tree import LaunchTree
 from roslaunch_analyze_server.models import LaunchFile
 from roslaunch_analyze_server.string_utils import analyze_string, find_linked_path
 
@@ -202,31 +199,3 @@ def get_required_arguments(launch_file: LaunchFile) -> List[Dict[str, Any]]:
         {"name": "sensor_model", "default": None},
         {"name": "pointcloud_container_name", "default": "pointcloud_container"},
     ]
-
-
-def main(
-    launch_file="/home/ukenryu/autoware/src/launcher/autoware_launch/autoware_launch/launch/logging_simulator.launch.xml",
-    vehicle_model="sample_vehicle",
-    sensor_model="sample_sensor_kit",
-    **kwargs,
-):
-    # Start parsing from the main XML file
-    context_tree = LaunchTree()
-    context = dict()
-    context["__tree__"] = context_tree
-
-    # arguments
-    context["vehicle_model"] = vehicle_model
-    context["sensor_model"] = sensor_model
-    for key in kwargs:
-        context[key] = kwargs[key]
-    context = parse_xml(launch_file, context=context)
-    # print(context["__tree__"])
-    json.dump(context["__tree__"].jsonify(), open("tree.json", "w"), indent=4)
-    return context["__tree__"].jsonify()
-
-
-if __name__ == "__main__":
-    from fire import Fire
-
-    context = Fire(main)
