@@ -4,7 +4,6 @@ from rclpy.logging import get_logger
 
 from roslaunch_analyze_server.filter import filter_entity_tree
 from roslaunch_analyze_server.parser import create_entity_tree
-from roslaunch_analyze_server.plantuml import generate_plantuml
 from roslaunch_analyze_server.serialization import make_entity_tree_serializable
 
 logger = get_logger("launch2json")
@@ -38,7 +37,7 @@ def _parse_args():
 
 def _parse_dictionary(launch_file_path:str, launch_arguments:dict):
     import argparse
-
+    import sys
     import rclpy
     from rclpy.node import Node
     from rclpy.parameter import Parameter
@@ -49,25 +48,37 @@ def _parse_dictionary(launch_file_path:str, launch_arguments:dict):
     node = Node("launch2json")
     node.declare_parameter("launch_command", Parameter.Type.STRING)
 
-    launch_command = "autoware_launch logging_simulator.launch.xml vehicle_model:=sample_vehicle sensor_model:=sample_sensor_kit map_path:=/home/ukenryu/autoware_map/rinkaifutoushin"
+    # launch_command = "autoware_launch logging_simulator.launch.xml vehicle_model:=sample_vehicle sensor_model:=sample_sensor_kit map_path:=/home/ukenryu/autoware_map/rinkaifutoushin"
     launch_command = f"{launch_file_path} {' '.join([f'{k}:={v}' for k, v in launch_arguments.items()])}"
     argv = launch_command.replace("ros2 launch ", "").split(" ")
-
+    print(argv)
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter)
-    LaunchCommand().add_arguments(parser, "ros2")
+    # LaunchCommand().add_arguments(parser, "ros2")
+    parser.add_argument("launch_file_name", type=str, help="The launch file to be executed")
+    parser.add_argument("launch_arguments", nargs="*", help="Arguments to pass to the launch file")
+    parser.add_argument(
+            '-n', '--noninteractive', default=not sys.stdin.isatty(), action='store_true',
+            help='Run the launch system non-interactively, with no terminal associated')
+    parser.add_argument(
+        '-d', '--debug', default=False, action='store_true',
+        help='Put the launch system in debug mode, provides more verbose output.')
 
     rclpy.shutdown()
 
     return parser.parse_args(args=argv)
 
 def _prepare(args):
+    import os
     import launch
     from ros2launch.api.api import get_share_file_path_from_package
     from ros2launch.api.api import parse_launch_arguments
-
-    launch_file_path = get_share_file_path_from_package(
-        package_name=args.package_name, file_name=args.launch_file_name
-    )
+    print(args)
+    if os.path.exists(args.launch_file_name):
+        launch_file_path = args.launch_file_name
+    else:
+        launch_file_path = get_share_file_path_from_package(
+            package_name=args.package_name, file_name=args.launch_file_name
+        )
 
     parsed_launch_arguments = parse_launch_arguments(args.launch_arguments)
 
@@ -118,4 +129,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    launch_file_path = "/home/ukenryu/autoware/src/launcher/autoware_launch/autoware_launch/launch/logging_simulator.launch.xml"
+    launch_arguments = {
+        "vehicle_model": "sample_vehicle",
+        "sensor_model": "sample_sensor_kit",
+        "map_path": "/home/ukenryu/autoware_map/rinkaifutoushin",
+    }
+    serializable_tree = analyse_launch_path(launch_file_path, launch_arguments)
+    import json
+    with open("entity_tree.json", "w") as f:
+        json.dump(serializable_tree, f, indent=2)
