@@ -116,12 +116,9 @@ def main():
     filtered_tree = filter_entity_tree(raw_tree.copy())
     serializable_tree = make_entity_tree_serializable(filtered_tree, launch_service.context)
 
-    plantuml = generate_plantuml(serializable_tree)
 
     output_dir = Path("./output")
     output_dir.mkdir(exist_ok=True)
-    with open(output_dir / "entity_tree.pu", "w") as f:
-        f.write(plantuml)
 
     # tmp
     with open(output_dir / "entity_tree.json", "w") as f:
