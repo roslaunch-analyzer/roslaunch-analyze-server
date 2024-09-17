@@ -36,7 +36,7 @@ def parse_node_tag(
                 path = find_linked_path(path)
                 if path.endswith("_empty.param.yaml"):
                     continue
-                print(path, child.get("from"))
+                # print(path, child.get("from"))
                 local_parameters["__param_files"].append(path)
                 data = read_ros_yaml(path)
                 for key in data:

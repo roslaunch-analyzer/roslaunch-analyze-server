@@ -45,11 +45,11 @@ class LaunchTree:
             self.nodes_manager[parent_name] = self.root
 
         if parent_name not in self.nodes_manager:
-            print(f"Parent node {parent_name} not found")
+            # print(f"Parent node {parent_name} not found")
             return
 
         if child_name in self.nodes_manager:
-            print(f"Child node {child_name} already exists")
+            # print(f"Child node {child_name} already exists")
             return
 
         child = LaunchTreeNode(child_name, **kwargs)
@@ -71,3 +71,13 @@ class LaunchTree:
     def __repr__(self) -> str:
         json_object = self.jsonify()
         return json.dumps(json_object, indent=4)
+
+
+def find_unset_parameters(tree: LaunchTree):
+    """Find all unset parameters in the launch tree."""
+    unset_parameters = []
+    for node_name, node in tree.nodes_manager.items():
+        for parameter_name, parameter_value in node.parameters.items():
+            if parameter_value == "ERROR_PARAMETER_NOT_SET":
+                unset_parameters.append((node_name, parameter_name))
+    return unset_parameters

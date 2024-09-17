@@ -10,6 +10,17 @@ patterns = {
     "find-pkg-share": r"\$\((find-pkg-share) ([^\)]+)\)",
 }
 
+BASE_PROJECT_MAPPING = {}
+
+def find_package(package_name)->str:
+    """
+    Return the share directory of the given package.
+    """
+    if package_name in BASE_PROJECT_MAPPING:
+        return BASE_PROJECT_MAPPING[package_name]
+    else:
+        BASE_PROJECT_MAPPING[package_name] = get_package_share_directory(package_name)
+        return BASE_PROJECT_MAPPING[package_name]
 
 def clean_eval_variables(string: str) -> str:
     """Remove quotes and spaces from a string, to obtain the 'value' of a variable."""
@@ -76,7 +87,7 @@ def analyze_string(
             package_name = analyze_string(
                 match.group(2), context, local_context, base_namespace
             )  # Recursively resolve inner substitutions
-            package_dir = get_package_share_directory(package_name)
+            package_dir = find_package(package_name)
             return package_dir
 
         return ""

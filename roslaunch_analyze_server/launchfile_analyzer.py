@@ -5,8 +5,23 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 from roslaunch_analyze_server.launch_node_utils import parse_node_tag
+from roslaunch_analyze_server.launch_tree import LaunchTree, find_unset_parameters
 from roslaunch_analyze_server.models import LaunchFile
-from roslaunch_analyze_server.string_utils import analyze_string, find_linked_path
+from roslaunch_analyze_server.string_utils import analyze_string, find_linked_path, BASE_PROJECT_MAPPING
+
+import os
+
+def find_cmake_projects(root_dir):
+    for dirpath, _, filenames in os.walk(root_dir):
+        if 'CMakeLists.txt' in filenames:
+            cmake_file_path = os.path.join(dirpath, 'CMakeLists.txt')
+            with open(cmake_file_path, 'r') as file:
+                for line in file:
+                    if line.startswith('project('):
+                        # Extract the project name
+                        project_name = line.split('(')[1].split(')')[0].strip()
+                        BASE_PROJECT_MAPPING[project_name] = dirpath
+                        break
 
 
 def check_if_run(tag: ET.Element, base_name: dict, context: dict, local_context: dict):
@@ -98,6 +113,16 @@ def parse_argument_tag(
                 argument_name
             ] = value
             context[argument_name] = value
+    else:
+        if argument_name not in context:
+            context["__tree__"].get_node(context["__current_launch_name_"]).parameters[
+                argument_name
+            ] = "ERROR_PARAMETER_NOT_SET"
+            # print(f"Argument {argument_name} has no default value and is not set in context")
+        else:
+            context["__tree__"].get_node(context["__current_launch_name_"]).parameters[
+                argument_name
+            ] = context[argument_name]
     return context
 
 
@@ -179,6 +204,8 @@ def parse_xml(file_path: str, namespace: str = "", context: dict = {}):
     full_path = os.path.join(file_path)
     context["__current_launch_file__"] = full_path
     context["__current_launch_name_"] = os.path.basename(full_path)
+    if "__tree__" not in context:
+        context["__tree__"] = LaunchTree()
     if context["__tree__"].root is None:
         context["__tree__"].add_root(context["__current_launch_name_"], path=full_path)
     tree = ET.parse(full_path)
@@ -199,3 +226,20 @@ def get_required_arguments(launch_file: LaunchFile) -> List[Dict[str, Any]]:
         {"name": "sensor_model", "default": None},
         {"name": "pointcloud_container_name", "default": "pointcloud_container"},
     ]
+
+if __name__ == "__main__":
+    launch_file = "/home/ukenryu/autoware/src/launcher/autoware_launch/autoware_launch/launch/logging_simulator.launch.xml"
+    context = {
+        "vehicle_model": "sample_vehicle",
+        "sensor_model": "sample_sensor_kit",
+        # "map_path": "/home/ukenryu/autoware_map/rinkaifutoushin",
+    }
+    find_cmake_projects('/home/ukenryu/autoware')
+    context = parse_xml(launch_file, context=context)
+
+    with open("output.json", "w") as f:
+        f.write(str(context["__tree__"]))
+
+    # print unused parameters
+    unset_parameters = find_unset_parameters(context["__tree__"])
+    print(unset_parameters)
